@@ -1,43 +1,37 @@
-CC              = c++
-CXXFLAGS        = -Wall -Wextra -Werror -std=c++17
+CC = c++
+CXXFLAGS = -Wall -Wextra -Werror -std=c++17
 
-NAME            = MattDeamon
-CLIENT_NAME     = MattDeamonctl
+NAME = Matt_daemon
 
-SRC_DIR         = src/
-OBJ_DIR         = .obj/
-INCLUDE         = ./include/
+SRC_DIR = src/
+OBJ_DIR = .obj/
+INCLUDE = ./include/
 
-SERVER_SRC_FILES =	main \
-					LockFile
+SRC_FILES = main \
+            LockFile \
+            Tintin_reporter \
+			TCP_server \
+			SignalManager
 
-# CLIENT_SRC_FILES = taskmasterctl \
-#                    Shell \
-#                    TcpCommandClient
+OBJ_FILES = $(addprefix $(OBJ_DIR), $(addsuffix .o, $(SRC_FILES)))
+HEADERS = $(wildcard $(INCLUDE)*.hpp)
 
-SERVER_OBJ = $(addprefix $(OBJ_DIR), $(addsuffix .o, $(SERVER_SRC_FILES)))
-CLIENT_OBJ = $(addprefix $(OBJ_DIR), $(addsuffix .o, $(CLIENT_SRC_FILES)))
-HEADER = $(wildcard $(INCLUDE)*.hpp)
+all: $(NAME)
 
-all: $(NAME) $(CLIENT_NAME)
-
-$(NAME): $(SERVER_OBJ)
-	$(CC) $(CXXFLAGS) -I $(INCLUDE) -o $@ $(SERVER_OBJ) -lyaml-cpp
-
-$(CLIENT_NAME): $(CLIENT_OBJ)
-	$(CC) $(CXXFLAGS) -I $(INCLUDE) -o $@ $(CLIENT_OBJ) -lreadline
+$(NAME): $(OBJ_FILES)
+	$(CC) $(CXXFLAGS) -I $(INCLUDE) -o $@ $(OBJ_FILES)
 
 $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp
 	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CXXFLAGS) -I $(INCLUDE) -c $< -o $@
 
-$(SERVER_OBJ) $(CLIENT_OBJ): Makefile $(HEADER)
+$(OBJ_FILES): Makefile $(HEADERS)
 
 clean:
 	rm -rf $(OBJ_DIR)
 
 fclean: clean
-	rm -f $(NAME) $(CLIENT_NAME)
+	rm -f $(NAME)
 
 re: fclean all
 

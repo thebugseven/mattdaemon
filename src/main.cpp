@@ -1,5 +1,7 @@
 #include "LockFile.hpp"
 #include "Tintin_reporter.hpp"
+#include "SignalManager.hpp"
+#include "TcpServer.hpp"
 
 #include <cerrno>
 #include <cstdlib>
@@ -9,7 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-bool deamonize(Tintin_reporter& reporter) {
+bool daemonize(Tintin_reporter& reporter) {
     pid_t pid = fork();
 
     if (pid == -1) {
@@ -81,26 +83,68 @@ bool deamonize(Tintin_reporter& reporter) {
 }
 
 int main() {
-    Tintin_reporter reporter("/var/log/matt_deamon/matt_deamon.log");
-
-    if (!reporter.isOpen()) {
-        std::cerr << "Failed to open log file: /var/log/matt_deamon/matt_deamon.log" << std::endl;
-        return 1;
-    }
-
-    reporter.info("Starting Matt_deamon...");
-
     if (geteuid() != 0) {
-        std::cerr << "Matt_deamon must be launched as root." << std::endl;
+        std::cerr << "Matt_daemon must be launched as root." << std::endl;
         return 1;
     }
 
     LockFile lock;
     std::string error;
 
-    if (!lock.acquire("/var/run/matt_deamon.lock", error)) {
+    if (!lock.acquire("/var/run/matt_daemon.lock", error)) {
         std::cerr << error << std::endl;
         return 1;
     }
+
+    Tintin_reporter reporter;
+
+    if (!reporter.isOpen()) {
+        std::cerr << "Failed to open log file: /var/log/matt_daemon/matt_daemon.log" << std::endl;
+        return 1;
+    }
+
+    reporter.info("Starting Matt_daemon...");
+
+    if (!SignalManager::setup()) {
+        reporter.error("Failed to set up signal handlers.");
+        return 1;
+    }
+
+    if (!daemonize(reporter))
+        return 1;
+    
+    bool running = true;
+
+    TcpServer server(4242, 3, [&reporter, &running](const std::string& message)) {
+        if (message == "quit") {
+            reporter.info("Received quit command. Shutting down.");
+            running = false;
+            return std::string ("Matt_daemon is shutting down.\n");
+        }
+
+        reporter.info("Received message: " + message);
+        return std::string("Message logged.");
+    }
+
+    if (!server.start(error)) {
+        reporter.error("Failed to start TCP server: " + error);
+        return 1;
+    }
+
+    reporter.info("TCP server started on port 4242.");
+
+    while (true) {
+        const sig_atomic_t signal = SignalManager::receivedSignal();
+
+        if (signal != 0) {
+            reporter.info("Received signal: " + std::to_string(static_cast<int>(signal)) + ". Shutting down.");
+            break;
+        }
+
+        server.update();
+        poll(nullptr, 0, 100);
+    }
+
+
 
 }

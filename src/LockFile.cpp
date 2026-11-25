@@ -17,7 +17,7 @@ bool LockFile::acquire(const std::string& path, std::string& error) {
 
     int fd = open(path.c_str(), O_CREAT | O_RDWR, 0644);
     if (fd == -1) {
-        error = "Error creating/opening matt_deamon.lock: " + std::string(strerror(errno));
+        error = "Error creating/opening matt_daemon.lock: " + std::string(strerror(errno));
         return false;
     }
 
@@ -28,7 +28,7 @@ bool LockFile::acquire(const std::string& path, std::string& error) {
         if (savedError == EWOULDBLOCK || savedError == EAGAIN) {
             error = "Another instance of the daemon is already running.";
         } else {
-            error = "Error acquiring lock on matt_deamon.lock: " + std::string(strerror(savedError));
+            error = "Error acquiring lock on matt_daemon.lock: " + std::string(strerror(savedError));
         }
 
         return false;

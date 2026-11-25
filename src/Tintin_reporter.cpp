@@ -1,6 +1,19 @@
 #include "Tintin_reporter.hpp"
 
-Tintin_reporter::Tintin_reporter() : _file("/var/log/matt_deamon/matt_deamon.log", std::ios::out | std::ios::app) {}
+Tintin_reporter::Tintin_reporter() {
+    const std::filesystem::path directory("/var/log/matt_");
+
+    std::error_code error;
+    std::filesystem::create_directories(directory, error);
+
+    if (error)
+        return;
+
+    _file.open(
+        directory / "matt_daemon.log",
+        std::ios::out | std::ios::app
+    );
+}
 
 bool Tintin_reporter::isOpen() const {
     return _file.is_open();
@@ -26,6 +39,6 @@ void Tintin_reporter::write(const std::string& level, const std::string& message
     if (localtime_r(&now, &localTime) == nullptr || !_file.is_open())
         return;
 
-    _file << "[" << std::put_time(&localTime, "%d / %m / %Y - %H : %M : %S") << "] ["
+    _file << "[ " << std::put_time(&localTime, "%d / %m / %Y - %H : %M : %S") << "] ["
         << level << "] " << message << std::endl;
 }
