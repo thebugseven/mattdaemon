@@ -1,7 +1,7 @@
 #include "Tintin_reporter.hpp"
 
 Tintin_reporter::Tintin_reporter() {
-    const std::filesystem::path directory("/var/log/matt_");
+    const std::filesystem::path directory("/var/log/matt_daemon");
 
     std::error_code error;
     std::filesystem::create_directories(directory, error);

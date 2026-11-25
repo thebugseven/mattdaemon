@@ -10,7 +10,7 @@ INCLUDE = ./include/
 SRC_FILES = main \
             LockFile \
             Tintin_reporter \
-			TCP_server \
+			TcpServer \
 			SignalManager
 
 OBJ_FILES = $(addprefix $(OBJ_DIR), $(addsuffix .o, $(SRC_FILES)))

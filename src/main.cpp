@@ -115,7 +115,7 @@ int main() {
     
     bool running = true;
 
-    TcpServer server(4242, 3, [&reporter, &running](const std::string& message)) {
+    TcpServer server(4242, 3, [&reporter, &running](const std::string& message) {
         if (message == "quit") {
             reporter.info("Received quit command. Shutting down.");
             running = false;
@@ -124,7 +124,7 @@ int main() {
 
         reporter.info("Received message: " + message);
         return std::string("Message logged.");
-    }
+    });
 
     if (!server.start(error)) {
         reporter.error("Failed to start TCP server: " + error);
@@ -133,7 +133,7 @@ int main() {
 
     reporter.info("TCP server started on port 4242.");
 
-    while (true) {
+    while (running) {
         const sig_atomic_t signal = SignalManager::receivedSignal();
 
         if (signal != 0) {
