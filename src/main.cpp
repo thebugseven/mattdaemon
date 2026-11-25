@@ -91,7 +91,7 @@ int main() {
     LockFile lock;
     std::string error;
 
-    if (!lock.acquire("/var/run/matt_daemon.lock", error)) {
+    if (!lock.acquire("/var/lock/matt_daemon.lock", error)) {
         std::cerr << error << std::endl;
         return 1;
     }
